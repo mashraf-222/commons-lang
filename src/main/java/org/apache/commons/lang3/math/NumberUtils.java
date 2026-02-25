@@ -584,55 +584,56 @@ public class NumberUtils {
         if (StringUtils.isEmpty(str)) {
             return false;
         }
-        final char[] chars = str.toCharArray();
-        int sz = chars.length;
+        final int length = str.length();
         boolean hasExp = false;
         boolean hasDecPoint = false;
         boolean allowSigns = false;
         boolean foundDigit = false;
         // deal with any possible sign up front
-        final int start = isSign(chars[0]) ? 1 : 0;
-        if (sz > start + 1 && chars[start] == '0' && !StringUtils.contains(str, '.')) { // leading 0, skip if is a decimal number
-            if (chars[start + 1] == 'x' || chars[start + 1] == 'X') { // leading 0x/0X
+        final int start = isSign(str.charAt(0)) ? 1 : 0;
+        if (length > start + 1 && str.charAt(start) == '0') {
+            final char secondChar = str.charAt(start + 1);
+            if (secondChar == 'x' || secondChar == 'X') { // leading 0x/0X
                 int i = start + 2;
-                if (i == sz) {
+                if (i == length) {
                     return false; // str == "0x"
                 }
                 // checking hex (it can't be anything else)
-                for (; i < chars.length; i++) {
-                    if (!CharUtils.isHex(chars[i])) {
+                for (; i < length; i++) {
+                    if (!CharUtils.isHex(str.charAt(i))) {
                         return false;
                     }
                 }
                 return true;
             }
-            if (Character.isDigit(chars[start + 1])) {
+            if (secondChar != '.' && Character.isDigit(secondChar)) {
                 // leading 0, but not hex, must be octal
                 int i = start + 1;
-                for (; i < chars.length; i++) {
-                    if (!CharUtils.isOctal(chars[i])) {
+                for (; i < length; i++) {
+                    if (!CharUtils.isOctal(str.charAt(i))) {
                         return false;
                     }
                 }
                 return true;
             }
         }
-        sz--; // don't want to loop to the last char, check it afterwards
-              // for type qualifiers
+        // don't want to loop to the last char, check it afterwards for type qualifiers
         int i = start;
+        final int sz = length - 1;
         // loop to the next to last char or to the last char if we need another digit to
         // make a valid number (e.g. chars[0..5] = "1234E")
-        while (i < sz || i < sz + 1 && allowSigns && !foundDigit) {
-            if (CharUtils.isAsciiNumeric(chars[i])) {
+        while (i < sz || i < length && allowSigns && !foundDigit) {
+            final char ch = str.charAt(i);
+            if (CharUtils.isAsciiNumeric(ch)) {
                 foundDigit = true;
                 allowSigns = false;
-            } else if (chars[i] == '.') {
+            } else if (ch == '.') {
                 if (hasDecPoint || hasExp) {
                     // two decimal points or dec in exponent
                     return false;
                 }
                 hasDecPoint = true;
-            } else if (chars[i] == 'e' || chars[i] == 'E') {
+            } else if (ch == 'e' || ch == 'E') {
                 // we've already taken care of hex.
                 if (hasExp) {
                     // two E's
@@ -643,7 +644,7 @@ public class NumberUtils {
                 }
                 hasExp = true;
                 allowSigns = true;
-            } else if (isSign(chars[i])) {
+            } else if (isSign(ch)) {
                 if (!allowSigns) {
                     return false;
                 }
@@ -654,16 +655,17 @@ public class NumberUtils {
             }
             i++;
         }
-        if (i < chars.length) {
-            if (CharUtils.isAsciiNumeric(chars[i])) {
+        if (i < length) {
+            final char lastChar = str.charAt(i);
+            if (CharUtils.isAsciiNumeric(lastChar)) {
                 // no type qualifier, OK
                 return true;
             }
-            if (chars[i] == 'e' || chars[i] == 'E') {
+            if (lastChar == 'e' || lastChar == 'E') {
                 // can't have an E at the last byte
                 return false;
             }
-            if (chars[i] == '.') {
+            if (lastChar == '.') {
                 if (hasDecPoint || hasExp) {
                     // two decimal points or dec in exponent
                     return false;
@@ -671,10 +673,10 @@ public class NumberUtils {
                 // single trailing decimal point after non-exponent is ok
                 return foundDigit;
             }
-            if (!allowSigns && (chars[i] == 'd' || chars[i] == 'D' || chars[i] == 'f' || chars[i] == 'F')) {
+            if (!allowSigns && (lastChar == 'd' || lastChar == 'D' || lastChar == 'f' || lastChar == 'F')) {
                 return foundDigit;
             }
-            if (chars[i] == 'l' || chars[i] == 'L') {
+            if (lastChar == 'l' || lastChar == 'L') {
                 // not allowing L with an exponent or decimal point
                 return foundDigit && !hasExp && !hasDecPoint;
             }
