@@ -3080,7 +3080,9 @@ public class ArrayUtils {
         if (isEmpty(array)) {
             return INDEX_NOT_FOUND;
         }
-        for (int i = max0(startIndex); i < array.length; i++) {
+        final int start = startIndex < 0 ? 0 : startIndex;
+        final int length = array.length;
+        for (int i = start; i < length; i++) {
             if (valueToFind == array[i]) {
                 return i;
             }
