@@ -94,18 +94,67 @@ public class WordUtils {
      */
     public static String capitalize(final String str, final char... delimiters) {
         final int delimLen = delimiters == null ? -1 : delimiters.length;
-        if (StringUtils.isEmpty(str) || delimLen == 0) {
+        // Inline null/empty check to avoid a static call in hot path
+        if (str == null || str.length() == 0 || delimLen == 0) {
             return str;
         }
         final char[] buffer = str.toCharArray();
         boolean capitalizeNext = true;
-        for (int i = 0; i < buffer.length; i++) {
-            final char ch = buffer[i];
-            if (isDelimiter(ch, delimiters)) {
-                capitalizeNext = true;
-            } else if (capitalizeNext) {
-                buffer[i] = Character.toTitleCase(ch);
-                capitalizeNext = false;
+
+        // Fast paths for delimiter checking to minimize per-character overhead.
+        if (delimLen == -1) {
+            // Whitespace delimiters
+            for (int i = 0, len = buffer.length; i < len; i++) {
+                final char ch = buffer[i];
+                if (Character.isWhitespace(ch)) {
+                    capitalizeNext = true;
+                } else if (capitalizeNext) {
+                    buffer[i] = Character.toTitleCase(ch);
+                    capitalizeNext = false;
+                }
+            }
+        } else if (delimLen == 1) {
+            // Single character delimiter: fastest comparison
+            final char delim = delimiters[0];
+            for (int i = 0, len = buffer.length; i < len; i++) {
+                final char ch = buffer[i];
+                if (ch == delim) {
+                    capitalizeNext = true;
+                } else if (capitalizeNext) {
+                    buffer[i] = Character.toTitleCase(ch);
+                    capitalizeNext = false;
+                }
+            }
+        } else if (delimLen <= 10) {
+            // Small delimiter arrays: linear scan is faster than allocating/sorting
+            for (int i = 0, len = buffer.length; i < len; i++) {
+                final char ch = buffer[i];
+                boolean isDelim = false;
+                for (int d = 0; d < delimLen; d++) {
+                    if (ch == delimiters[d]) {
+                        isDelim = true;
+                        break;
+                    }
+                }
+                if (isDelim) {
+                    capitalizeNext = true;
+                } else if (capitalizeNext) {
+                    buffer[i] = Character.toTitleCase(ch);
+                    capitalizeNext = false;
+                }
+            }
+        } else {
+            // Larger delimiter arrays: clone+sort once and use binary search for O(log n) checks
+            final char[] copy = java.util.Arrays.copyOf(delimiters, delimLen);
+            java.util.Arrays.sort(copy);
+            for (int i = 0, len = buffer.length; i < len; i++) {
+                final char ch = buffer[i];
+                if (java.util.Arrays.binarySearch(copy, ch) >= 0) {
+                    capitalizeNext = true;
+                } else if (capitalizeNext) {
+                    buffer[i] = Character.toTitleCase(ch);
+                    capitalizeNext = false;
+                }
             }
         }
         return new String(buffer);
