@@ -1902,11 +1902,28 @@ public class StringUtils {
      */
     @SafeVarargs
     public static <T extends CharSequence> T firstNonBlank(final T... values) {
-        if (values != null) {
-            for (final T val : values) {
-                if (isNotBlank(val)) {
-                    return val;
+        if (values == null) {
+            return null;
+        }
+        // Use index-based loop and inline blank-check to avoid per-iteration static method call overhead.
+        for (int i = 0; i < values.length; i++) {
+            final T val = values[i];
+            if (val == null) {
+                continue;
+            }
+            final int len = val.length();
+            if (len == 0) {
+                continue;
+            }
+            boolean hasNonWhitespace = false;
+            for (int j = 0; j < len; j++) {
+                if (!Character.isWhitespace(val.charAt(j))) {
+                    hasNonWhitespace = true;
+                    break;
                 }
+            }
+            if (hasNonWhitespace) {
+                return val;
             }
         }
         return null;
