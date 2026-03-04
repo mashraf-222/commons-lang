@@ -360,7 +360,33 @@ public class WordUtils {
      * @see #capitalize(String)
      */
     public static String uncapitalize(final String str) {
-        return uncapitalize(str, null);
+        if (str == null || str.isEmpty()) {
+            return str;
+        }
+        final int len = str.length();
+        boolean atWordStart = true;
+        char[] chars = null; // lazily created only if a change is required
+
+        for (int i = 0; i < len; i++) {
+            char ch = str.charAt(i);
+            if (Character.isWhitespace(ch)) {
+                atWordStart = true;
+            } else {
+                if (atWordStart) {
+                    char lower = Character.toLowerCase(ch);
+                    if (lower != ch) {
+                        if (chars == null) {
+                            chars = str.toCharArray();
+                        }
+                        chars[i] = lower;
+                    }
+                    atWordStart = false;
+                }
+                // if not at word start and chars already created, no action required
+            }
+        }
+
+        return (chars == null) ? str : new String(chars);
     }
 
     /**
