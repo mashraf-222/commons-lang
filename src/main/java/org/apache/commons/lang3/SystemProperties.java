@@ -1568,6 +1568,8 @@ public final class SystemProperties {
      * @since 3.15.0
      */
     public static final String USER_VARIANT = "user.variant";
+    private static final java.util.concurrent.ConcurrentHashMap<Class<?>, String> PREFIX_CACHE =
+                new java.util.concurrent.ConcurrentHashMap<>();
 
     /**
      * Gets the current value from the system properties map.
@@ -1944,7 +1946,18 @@ public final class SystemProperties {
      * @since 3.19.0
      */
     public static int getInt(final Class<?> clazz, final String key, final IntSupplier defaultIfAbsent) {
-        return getInt(toKey(clazz, key, true), defaultIfAbsent);
+        // Try to reuse the class prefix (simple-name + ".") to avoid re-computing via ClassUtils.getName
+        // Note: to preserve exact original behavior we derive the prefix via toKey(clazz, "", true)
+        // which produces ClassName + "."; this ensures identical output for prefix + key vs toKey(clazz, key, true).
+        final String prefix = PREFIX_CACHE.get(clazz);
+        if (prefix != null) {
+            return getInt(prefix + key, defaultIfAbsent);
+        }
+        // Compute prefix once and cache it. Use putIfAbsent to avoid race creating multiple identical strings.
+        final String computedPrefix = toKey(clazz, "", true);
+        final String existing = PREFIX_CACHE.putIfAbsent(clazz, computedPrefix);
+        final String usePrefix = existing != null ? existing : computedPrefix;
+        return getInt(usePrefix + key, defaultIfAbsent);
     }
 
     /**
