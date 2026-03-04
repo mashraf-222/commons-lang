@@ -1568,6 +1568,7 @@ public final class SystemProperties {
      * @since 3.15.0
      */
     public static final String USER_VARIANT = "user.variant";
+    private static final Supplier<String> NULL_SUPPLIER = Suppliers.<String>nul();
 
     /**
      * Gets the current value from the system properties map.
