@@ -115,21 +115,30 @@ public class CharSequenceUtils {
         if (start < 0) {
             start = 0;
         }
+        if (start >= sz) {
+            return NOT_FOUND;
+        }
         if (searchChar < Character.MIN_SUPPLEMENTARY_CODE_POINT) {
+            // cast once to avoid repeated widening in loop
+            final char search = (char) searchChar;
             for (int i = start; i < sz; i++) {
-                if (cs.charAt(i) == searchChar) {
+                if (cs.charAt(i) == search) {
                     return i;
                 }
             }
             return NOT_FOUND;
         }
-        //supplementary characters (LANG1300)
+        // supplementary characters (LANG1300)
         if (searchChar <= Character.MAX_CODE_POINT) {
-            final char[] chars = Character.toChars(searchChar);
-            for (int i = start; i < sz - 1; i++) {
-                final char high = cs.charAt(i);
-                final char low = cs.charAt(i + 1);
-                if (high == chars[0] && low == chars[1]) {
+            /*
+             * Avoid allocating a temporary char[] via Character.toChars(searchChar)
+             * by computing the surrogate pair once.
+             */
+            final char high = Character.highSurrogate(searchChar);
+            final char low = Character.lowSurrogate(searchChar);
+            final int last = sz - 1;
+            for (int i = start; i < last; i++) {
+                if (cs.charAt(i) == high && cs.charAt(i + 1) == low) {
                     return i;
                 }
             }
