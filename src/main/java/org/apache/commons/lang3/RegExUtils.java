@@ -32,6 +32,8 @@ public class RegExUtils {
      * The pattern to split version strings.
      */
     static final Pattern VERSION_SPLIT_PATTERN = Pattern.compile("\\.");
+    private static final java.util.concurrent.ConcurrentMap<String, Pattern> DOTALL_CACHE =
+                new java.util.concurrent.ConcurrentHashMap<>(64);
 
     /**
      * Compiles the given regular expression into a pattern with the {@link Pattern#DOTALL} flag.
