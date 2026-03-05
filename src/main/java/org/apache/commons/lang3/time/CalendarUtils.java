@@ -166,8 +166,12 @@ public class CalendarUtils {
         if (displayNames == null) {
             return null;
         }
-        final String[] monthNames = new String[displayNames.size()];
-        displayNames.forEach((k, v) -> monthNames[v] = k);
+        final int size = displayNames.size();
+        final String[] monthNames = new String[size];
+        for (Map.Entry<String, Integer> e : displayNames.entrySet()) {
+            // use intValue to avoid extra boxing/unboxing overhead in hot paths
+            monthNames[e.getValue().intValue()] = e.getKey();
+        }
         return monthNames;
     }
 
