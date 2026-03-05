@@ -8308,11 +8308,13 @@ public class StringUtils {
      * @since 3.11
      */
     public static String substringAfterLast(final String str, final int find) {
-        if (isEmpty(str)) {
+        // Inline isEmpty to avoid the virtual call overhead on a hot path.
+        if (str == null || str.length() == 0) {
             return str;
         }
         final int pos = str.lastIndexOf(find);
-        if (pos == INDEX_NOT_FOUND || pos == str.length() - 1) {
+        final int len = str.length();
+        if (pos == INDEX_NOT_FOUND || pos == len - 1) {
             return EMPTY;
         }
         return str.substring(pos + 1);
