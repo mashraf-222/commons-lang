@@ -1235,11 +1235,13 @@ public class Conversion {
             throw new IllegalArgumentException("(nShorts - 1) * 16 + dstPos >= 32");
         }
         int out = dstInit;
-        for (int i = 0; i < nShorts; i++) {
-            final int shift = i * Short.SIZE + dstPos;
-            final int bits = (0xffff & src[i + srcPos]) << shift;
+        int index = srcPos;
+        int shift = dstPos;
+        // Use incremental shift to avoid multiplication each iteration
+        for (int i = 0; i < nShorts; i++, index++, shift += Short.SIZE) {
+            final int bits = (src[index] & 0xffff) << shift;
             final int mask = 0xffff << shift;
-            out = out & ~mask | bits;
+            out = (out & ~mask) | bits;
         }
         return out;
     }
