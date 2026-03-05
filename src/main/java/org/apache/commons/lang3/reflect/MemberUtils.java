@@ -244,7 +244,32 @@ final class MemberUtils {
     }
 
     static boolean isMatchingConstructor(final Constructor<?> method, final Class<?>[] parameterTypes) {
-        return isMatchingExecutable(Executable.of(method), parameterTypes);
+        final Class<?>[] methodParameterTypes = method.getParameterTypes();
+        // fast-path: exact/assignable parameter array
+        if (ClassUtils.isAssignable(parameterTypes, methodParameterTypes, true)) {
+            return true;
+        }
+        if (method.isVarArgs()) {
+            final int mLen = methodParameterTypes.length;
+            int i = 0;
+            final int fixedParamCount = mLen - 1;
+            // check fixed (non-varargs) parameters
+            for (; i < fixedParamCount && i < parameterTypes.length; i++) {
+                if (!ClassUtils.isAssignable(parameterTypes[i], methodParameterTypes[i], true)) {
+                    return false;
+                }
+            }
+            // component type of the varargs array parameter
+            final Class<?> varArgComponentType = methodParameterTypes[fixedParamCount].getComponentType();
+            // check remaining parameters against vararg component type
+            for (; i < parameterTypes.length; i++) {
+                if (!ClassUtils.isAssignable(parameterTypes[i], varArgComponentType, true)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
     }
 
     private static boolean isMatchingExecutable(final Executable method, final Class<?>[] parameterTypes) {
