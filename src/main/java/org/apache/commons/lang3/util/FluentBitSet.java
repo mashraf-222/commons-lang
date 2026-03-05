@@ -37,6 +37,8 @@ public final class FluentBitSet implements Cloneable, Serializable {
      * Working BitSet.
      */
     private final BitSet bitSet;
+    private static final ThreadLocal<StringBuilder> STRING_BUILDER_TL =
+                ThreadLocal.withInitial(() -> new StringBuilder(64));
 
     /**
      * Creates a new bit set. All bits are initially {@code false}.
@@ -568,7 +570,24 @@ public final class FluentBitSet implements Cloneable, Serializable {
 
     @Override
     public String toString() {
-        return bitSet.toString();
+        // Preserve any custom behavior for BitSet subclasses by delegating to their toString().
+        if (bitSet.getClass() != BitSet.class) {
+            return bitSet.toString();
+        }
+
+        // Fast-path for standard java.util.BitSet: avoid allocating a new StringBuilder each call.
+        final StringBuilder sb = STRING_BUILDER_TL.get();
+        sb.setLength(0);
+        sb.append('{');
+        int i = bitSet.nextSetBit(0);
+        if (i != -1) {
+            sb.append(i);
+            for (int j = bitSet.nextSetBit(i + 1); j >= 0; j = bitSet.nextSetBit(j + 1)) {
+                sb.append(", ").append(j);
+            }
+        }
+        sb.append('}');
+        return sb.toString();
     }
 
     /**
