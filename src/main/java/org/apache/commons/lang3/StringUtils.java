@@ -8772,7 +8772,31 @@ public class StringUtils {
      * @since 2.0
      */
     public static String trimToEmpty(final String str) {
-        return str == null ? EMPTY : str.trim();
+        if (str == null) {
+            return EMPTY;
+        }
+        final int length = str.length();
+        int start = 0;
+        int end = length;
+
+        // scan from start
+        while (start < end && str.charAt(start) <= ' ') {
+            start++;
+        }
+        // scan from end
+        while (start < end && str.charAt(end - 1) <= ' ') {
+            end--;
+        }
+
+        // no trimming needed
+        if (start == 0 && end == length) {
+            return str;
+        }
+        // all trimmed away
+        if (start >= end) {
+            return EMPTY;
+        }
+        return str.substring(start, end);
     }
 
     /**
