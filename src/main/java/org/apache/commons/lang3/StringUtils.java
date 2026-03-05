@@ -8468,7 +8468,8 @@ public class StringUtils {
      * @since 2.0
      */
     public static String substringBeforeLast(final String str, final String find) {
-        if (isEmpty(str) || isEmpty(find)) {
+        // Inline the empty checks to avoid the overhead of a method call in a hot path.
+        if (str == null || str.length() == 0 || find == null || find.length() == 0) {
             return str;
         }
         final int pos = str.lastIndexOf(find);
