@@ -8235,7 +8235,12 @@ public class StringUtils {
         if (pos == INDEX_NOT_FOUND) {
             return EMPTY;
         }
-        return str.substring(pos + 1);
+        final int start = pos + 1;
+        // Avoid creating a new empty String instance when result is empty
+        if (start == str.length()) {
+            return EMPTY;
+        }
+        return str.substring(start);
     }
 
     /**
