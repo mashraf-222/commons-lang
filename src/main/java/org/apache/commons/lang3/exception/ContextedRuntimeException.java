@@ -184,7 +184,8 @@ public class ContextedRuntimeException extends RuntimeException implements Excep
      */
     @Override
     public Set<String> getContextLabels() {
-        return exceptionContext.getContextLabels();
+        final ExceptionContext ctx = exceptionContext;
+        return ctx.getContextLabels();
     }
 
     /**
