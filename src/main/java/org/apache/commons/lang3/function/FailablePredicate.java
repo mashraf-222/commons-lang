@@ -70,7 +70,46 @@ public interface FailablePredicate<T, E extends Throwable> {
      * @throws NullPointerException if other is null
      */
     default FailablePredicate<T, E> and(final FailablePredicate<? super T, E> other) {
-        Objects.requireNonNull(other);
+        if (other == null) {
+            throw new NullPointerException();
+        }
+
+        // Fast-path: if 'this' is the canonical TRUE, the result is just 'other'.
+        if (this == TRUE) {
+            @SuppressWarnings("unchecked")
+            final FailablePredicate<T, E> cast = (FailablePredicate<T, E>) other;
+            return cast;
+        }
+
+        // Fast-path: if 'this' is the canonical FALSE, the result is canonical FALSE.
+        if (this == FALSE) {
+            @SuppressWarnings("unchecked")
+            final FailablePredicate<T, E> castFalse = (FailablePredicate<T, E>) FALSE;
+            return castFalse;
+        }
+
+        // If 'other' is canonical TRUE, the result is this.
+        if (other == TRUE) {
+            @SuppressWarnings("unchecked")
+            final FailablePredicate<T, E> cast = (FailablePredicate<T, E>) this;
+            return cast;
+        }
+
+        // If 'other' is canonical FALSE, the result is canonical FALSE.
+        if (other == FALSE) {
+            @SuppressWarnings("unchecked")
+            final FailablePredicate<T, E> castFalse = (FailablePredicate<T, E>) FALSE;
+            return castFalse;
+        }
+
+        // If both are the same reference, return this to avoid allocating a new lambda.
+        if (this == other) {
+            @SuppressWarnings("unchecked")
+            final FailablePredicate<T, E> cast = (FailablePredicate<T, E>) this;
+            return cast;
+        }
+
+        // Default composed predicate with short-circuit semantics.
         return t -> test(t) && other.test(t);
     }
 
