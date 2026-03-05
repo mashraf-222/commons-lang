@@ -8387,7 +8387,11 @@ public class StringUtils {
      * @since 3.12.0
      */
     public static String substringBefore(final String str, final int find) {
-        if (isEmpty(str)) {
+        // Inline the isEmpty check to avoid an extra method call in hot paths.
+        if (str == null) {
+            return null;
+        }
+        if (str.length() == 0) {
             return str;
         }
         final int pos = str.indexOf(find);
