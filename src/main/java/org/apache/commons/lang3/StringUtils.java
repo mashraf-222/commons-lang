@@ -8348,17 +8348,28 @@ public class StringUtils {
      * @since 2.0
      */
     public static String substringAfterLast(final String str, final String find) {
-        if (isEmpty(str)) {
-            return str;
+        // Inline null/empty checks to reduce call overhead in hot paths.
+        if (str == null) {
+            return null;
         }
-        if (isEmpty(find)) {
+        if (str.length() == 0) {
+            return str; // preserve original behavior for empty input
+        }
+        if (find == null || find.length() == 0) {
             return EMPTY;
         }
-        final int pos = str.lastIndexOf(find);
-        if (pos == INDEX_NOT_FOUND || pos == str.length() - find.length()) {
+        final int findLen = find.length();
+        final int pos;
+        if (findLen == 1) {
+            // Use the faster char-based search for single-character find strings.
+            pos = str.lastIndexOf(find.charAt(0));
+        } else {
+            pos = str.lastIndexOf(find);
+        }
+        if (pos == INDEX_NOT_FOUND || pos == str.length() - findLen) {
             return EMPTY;
         }
-        return str.substring(pos + find.length());
+        return str.substring(pos + findLen);
     }
 
     /**
