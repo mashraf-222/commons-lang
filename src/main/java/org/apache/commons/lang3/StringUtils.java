@@ -1938,8 +1938,11 @@ public class StringUtils {
     @SafeVarargs
     public static <T extends CharSequence> T firstNonEmpty(final T... values) {
         if (values != null) {
-            for (final T val : values) {
-                if (isNotEmpty(val)) {
+            final T[] vals = values;
+            for (int i = 0, len = vals.length; i < len; i++) {
+                final T val = vals[i];
+                // inline isNotEmpty check to avoid per-iteration method call overhead
+                if (val != null && val.length() > 0) {
                     return val;
                 }
             }
