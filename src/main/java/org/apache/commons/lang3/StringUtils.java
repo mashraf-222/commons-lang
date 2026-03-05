@@ -8500,7 +8500,24 @@ public class StringUtils {
      * @since 2.0
      */
     public static String substringBetween(final String str, final String tag) {
-        return substringBetween(str, tag, tag);
+        // Inline the common two-arg case to avoid an extra method call and reduce overhead on hot paths.
+        if (str == null || tag == null) {
+            return null;
+        }
+        final int tagLen = tag.length();
+        if (tagLen == 0) {
+            // Per documented behavior: empty tag yields empty string between the first occurrences.
+            return "";
+        }
+        final int start = str.indexOf(tag);
+        if (start == INDEX_NOT_FOUND) {
+            return null;
+        }
+        final int end = str.indexOf(tag, start + tagLen);
+        if (end == INDEX_NOT_FOUND) {
+            return null;
+        }
+        return str.substring(start + tagLen, end);
     }
 
     /**
