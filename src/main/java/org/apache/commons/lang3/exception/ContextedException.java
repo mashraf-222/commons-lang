@@ -97,7 +97,7 @@ public class ContextedException extends Exception implements ExceptionContext {
      * The context information is stored using a default implementation.
      */
     public ContextedException() {
-        exceptionContext = new DefaultExceptionContext();
+        this(null, null, null);
     }
 
     /**
@@ -108,8 +108,7 @@ public class ContextedException extends Exception implements ExceptionContext {
      * @param message  the exception message, may be null
      */
     public ContextedException(final String message) {
-        super(message);
-        exceptionContext = new DefaultExceptionContext();
+        this(message, null, null);
     }
 
     /**
@@ -121,8 +120,7 @@ public class ContextedException extends Exception implements ExceptionContext {
      * @param cause  the underlying cause of the exception, may be null
      */
     public ContextedException(final String message, final Throwable cause) {
-        super(message, cause);
-        exceptionContext = new DefaultExceptionContext();
+        this(message, cause, null);
     }
 
     /**
@@ -200,7 +198,8 @@ public class ContextedException extends Exception implements ExceptionContext {
      */
     @Override
     public Object getFirstContextValue(final String label) {
-        return this.exceptionContext.getFirstContextValue(label);
+        final ExceptionContext ctx = this.exceptionContext;
+        return ctx.getFirstContextValue(label);
     }
 
     /**
