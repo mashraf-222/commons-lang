@@ -8126,14 +8126,19 @@ public class StringUtils {
         if (str == null) {
             return null;
         }
+        final int len = str.length();
         // handle negatives, which means last n characters
         if (start < 0) {
-            start = str.length() + start; // remember start is negative
+            start += len; // remember start is negative
+            if (start < 0) {
+                // start still negative -> equivalent to 0 (full string)
+                return str;
+            }
         }
-        if (start < 0) {
-            start = 0;
+        if (start == 0) {
+            return str;
         }
-        if (start > str.length()) {
+        if (start >= len) {
             return EMPTY;
         }
         return str.substring(start);
