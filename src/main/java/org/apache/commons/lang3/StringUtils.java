@@ -8748,7 +8748,25 @@ public class StringUtils {
      * @return the trimmed string, {@code null} if null String input.
      */
     public static String trim(final String str) {
-        return str == null ? null : str.trim();
+        if (str == null) {
+            return null;
+        }
+        int len = str.length();
+        if (len == 0) {
+            return str;
+        }
+        int st = 0;
+        // scan from start
+        while (st < len && str.charAt(st) <= ' ') {
+            st++;
+        }
+        // scan from end
+        int end = len;
+        while (st < end && str.charAt(end - 1) <= ' ') {
+            end--;
+        }
+        // If no trimming needed, return the original reference to avoid allocation
+        return (st == 0 && end == len) ? str : str.substring(st, end);
     }
 
     /**
