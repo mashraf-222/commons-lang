@@ -32,6 +32,8 @@ public class RegExUtils {
      * The pattern to split version strings.
      */
     static final Pattern VERSION_SPLIT_PATTERN = Pattern.compile("\\.");
+    private static final java.util.concurrent.ConcurrentHashMap<String, Pattern> DOTALL_PATTERN_CACHE =
+                new java.util.concurrent.ConcurrentHashMap<>();
 
     /**
      * Compiles the given regular expression into a pattern with the {@link Pattern#DOTALL} flag.
@@ -689,7 +691,8 @@ public class RegExUtils {
         if (ObjectUtils.anyNull(text, regex, replacement)) {
             return toStringOrNull(text);
         }
-        return dotAllMatcher(regex, text).replaceAll(replacement);
+        // Use cached DOTALL Pattern to avoid recompiling the regex on repeated calls.
+        return dotAll(regex).matcher(text).replaceAll(replacement);
     }
 
     /**
