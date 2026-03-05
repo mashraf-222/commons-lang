@@ -271,7 +271,30 @@ final class MemberUtils {
     }
 
     static boolean isMatchingMethod(final Method method, final Class<?>[] parameterTypes) {
-      return isMatchingExecutable(Executable.of(method), parameterTypes);
+        final Class<?>[] methodParameterTypes = method.getParameterTypes();
+        if (ClassUtils.isAssignable(parameterTypes, methodParameterTypes, true)) {
+            return true;
+        }
+        if (!method.isVarArgs()) {
+            return false;
+        }
+        final int mLen = methodParameterTypes.length;
+        final int pLen = parameterTypes.length;
+        final int lastFixedIndex = mLen - 1;
+        int i = 0;
+        final int fixedCompareLen = lastFixedIndex < pLen ? lastFixedIndex : pLen;
+        for (; i < fixedCompareLen; i++) {
+            if (!ClassUtils.isAssignable(parameterTypes[i], methodParameterTypes[i], true)) {
+                return false;
+            }
+        }
+        final Class<?> varArgParameterType = methodParameterTypes[lastFixedIndex].getComponentType();
+        for (; i < pLen; i++) {
+            if (!ClassUtils.isAssignable(parameterTypes[i], varArgParameterType, true)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
