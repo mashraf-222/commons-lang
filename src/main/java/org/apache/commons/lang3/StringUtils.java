@@ -2549,7 +2549,61 @@ public class StringUtils {
      */
     @Deprecated
     public static int indexOf(final CharSequence seq, final CharSequence searchSeq) {
-        return Strings.CS.indexOf(seq, searchSeq);
+        // Fast-fail on null inputs
+        if (seq == null || searchSeq == null) {
+            return INDEX_NOT_FOUND;
+        }
+
+        final int seqLen = seq.length();
+        final int searchLen = searchSeq.length();
+
+        // Empty search sequence matches at position 0
+        if (searchLen == 0) {
+            return 0;
+        }
+
+        // If search is longer than sequence, no match possible
+        if (searchLen > seqLen) {
+            return INDEX_NOT_FOUND;
+        }
+
+        // Fast-path when both are Strings to use native implementation
+        if (seq instanceof String && searchSeq instanceof String) {
+            return ((String) seq).indexOf((String) searchSeq);
+        }
+
+        // Fast-path for single character search
+        if (searchLen == 1) {
+            final char ch = searchSeq.charAt(0);
+            for (int i = 0; i < seqLen; i++) {
+                if (seq.charAt(i) == ch) {
+                    return i;
+                }
+            }
+            return INDEX_NOT_FOUND;
+        }
+
+        // General case: scan for first character, then verify full match
+        final char first = searchSeq.charAt(0);
+        final int max = seqLen - searchLen;
+        for (int i = 0; i <= max; i++) {
+            // find position of first character
+            if (seq.charAt(i) != first) {
+                continue;
+            }
+            // verify the rest
+            int j = i + 1;
+            int k = 1;
+            for (; k < searchLen; k++, j++) {
+                if (seq.charAt(j) != searchSeq.charAt(k)) {
+                    break;
+                }
+            }
+            if (k == searchLen) {
+                return i;
+            }
+        }
+        return INDEX_NOT_FOUND;
     }
 
     /**
