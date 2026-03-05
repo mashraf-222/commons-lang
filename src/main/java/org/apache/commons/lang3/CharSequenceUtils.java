@@ -192,7 +192,16 @@ public class CharSequenceUtils {
             start = len1 - len2;
         }
 
-        final char char0 = searchChar.charAt(0);
+        /*
+         * Optimize the hot inner comparisons by copying the searchChar contents
+         * into a char[] once so we avoid repeated searchChar.charAt(...) calls.
+         */
+        final char[] search = new char[len2];
+        for (int idx = 0; idx < len2; idx++) {
+            search[idx] = searchChar.charAt(idx);
+        }
+
+        final char char0 = search[0];
 
         int i = start;
         while (true) {
@@ -202,7 +211,20 @@ public class CharSequenceUtils {
                     return NOT_FOUND;
                 }
             }
-            if (checkLaterThan1(cs, searchChar, len2, i)) {
+            // Inline symmetric comparison using the cached char[] for search
+            boolean matched = true;
+            int left = 1;
+            int right = len2 - 1;
+            // Compare from both ends towards the center.
+            while (left <= right) {
+                if (cs.charAt(i + left) != search[left] || cs.charAt(i + right) != search[right]) {
+                    matched = false;
+                    break;
+                }
+                left++;
+                right--;
+            }
+            if (matched) {
                 return i;
             }
             i--;
