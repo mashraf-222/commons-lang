@@ -2686,10 +2686,49 @@ public class StringUtils {
      * @since 3.6 Updated {@link CharSequenceUtils} call to behave more like {@link String}
      */
     public static int indexOf(final CharSequence seq, final int searchChar, final int startPos) {
-        if (isEmpty(seq)) {
+        // Fast-path null/empty
+        if (seq == null) {
             return INDEX_NOT_FOUND;
         }
-        return CharSequenceUtils.indexOf(seq, searchChar, startPos);
+        final int len = seq.length();
+        if (len == 0) {
+            return INDEX_NOT_FOUND;
+        }
+
+        int pos = startPos;
+        if (pos < 0) {
+            pos = 0;
+        }
+        if (pos >= len) {
+            return INDEX_NOT_FOUND;
+        }
+
+        // If searchChar is a BMP char (0..0xFFFF), do a simple char loop.
+        if (searchChar >= 0 && searchChar <= Character.MAX_VALUE) {
+            final char search = (char) searchChar;
+            for (int i = pos; i < len; i++) {
+                if (seq.charAt(i) == search) {
+                    return i;
+                }
+            }
+            return INDEX_NOT_FOUND;
+        }
+
+        // If searchChar is a valid supplementary code point, search for its surrogate pair.
+        if (searchChar >= Character.MIN_SUPPLEMENTARY_CODE_POINT && searchChar <= Character.MAX_CODE_POINT) {
+            final char high = Character.highSurrogate(searchChar);
+            final char low = Character.lowSurrogate(searchChar);
+            final int last = len - 1; // need two chars to match
+            for (int i = pos; i < last; i++) {
+                if (seq.charAt(i) == high && seq.charAt(i + 1) == low) {
+                    return i;
+                }
+            }
+            return INDEX_NOT_FOUND;
+        }
+
+        // Invalid code point values (e.g., negative or > MAX_CODE_POINT) never match.
+        return INDEX_NOT_FOUND;
     }
 
     /**
