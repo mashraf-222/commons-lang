@@ -8531,17 +8531,16 @@ public class StringUtils {
      * @since 2.0
      */
     public static String substringBetween(final String str, final String open, final String close) {
-        if (!ObjectUtils.allNotNull(str, open, close)) {
+        if (str == null || open == null || close == null) {
             return null;
         }
         final int start = str.indexOf(open);
-        if (start != INDEX_NOT_FOUND) {
-            final int end = str.indexOf(close, start + open.length());
-            if (end != INDEX_NOT_FOUND) {
-                return str.substring(start + open.length(), end);
-            }
+        if (start == INDEX_NOT_FOUND) {
+            return null;
         }
-        return null;
+        final int fromIndex = start + open.length();
+        final int end = str.indexOf(close, fromIndex);
+        return end == INDEX_NOT_FOUND ? null : str.substring(fromIndex, end);
     }
 
     /**
