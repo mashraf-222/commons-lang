@@ -163,14 +163,20 @@ public class Conversion {
         if (nBools - 1 + dstPos >= Byte.SIZE) {
             throw new IllegalArgumentException("nBools - 1 + dstPos >= 8");
         }
-        byte out = dstInit;
+        int out = dstInit; // use int accumulator to avoid repeated promotions; preserves sign-extension semantics
+        int sIndex = srcPos;
+        int shift = dstPos;
+        // update bits using one mask and a single array access per iteration
         for (int i = 0; i < nBools; i++) {
-            final int shift = i + dstPos;
-            final int bits = (src[i + srcPos] ? 1 : 0) << shift;
-            final int mask = 0x1 << shift;
-            out = (byte) (out & ~mask | bits);
+            final int mask = 1 << shift;
+            if (src[sIndex++]) {
+                out |= mask;
+            } else {
+                out &= ~mask;
+            }
+            shift++;
         }
-        return out;
+        return (byte) out;
     }
 
     /**
