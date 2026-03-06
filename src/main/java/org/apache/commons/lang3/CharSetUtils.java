@@ -88,8 +88,9 @@ public class CharSetUtils {
         }
         final CharSet chars = CharSet.getInstance(set);
         int count = 0;
-        for (final char c : str.toCharArray()) {
-            if (chars.contains(c)) {
+        final int len = str.length();
+        for (int i = 0; i < len; i++) {
+            if (chars.contains(str.charAt(i))) {
                 count++;
             }
         }
