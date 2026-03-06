@@ -2569,7 +2569,16 @@ public class StrBuilder implements CharSequence, Appendable, Serializable, Build
     public StrBuilder replace(
             final StrMatcher matcher, final String replaceStr,
             final int startIndex, int endIndex, final int replaceCount) {
-        endIndex = validateRange(startIndex, endIndex);
+        // Inlined validateRange logic to remove frequent method-call overhead seen in profiling.
+        if (startIndex < 0) {
+            throw new StringIndexOutOfBoundsException(startIndex);
+        }
+        if (endIndex > size) {
+            endIndex = size;
+        }
+        if (startIndex > endIndex) {
+            throw new StringIndexOutOfBoundsException("end < start");
+        }
         return replaceImpl(matcher, replaceStr, startIndex, endIndex, replaceCount);
     }
 
