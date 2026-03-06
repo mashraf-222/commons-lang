@@ -62,6 +62,16 @@ public final class ObjectToStringComparator implements Comparator<Object>, Seria
         if (o2 == null) {
             return -1;
         }
+        // Fast-path when both are already Strings: avoid toString() calls and use existing instances.
+        if (o1 instanceof String && o2 instanceof String) {
+            final String s1 = (String) o1;
+            final String s2 = (String) o2;
+            if (s1 == s2) {
+                return 0;
+            }
+            // Strings are non-null here.
+            return s1.compareTo(s2);
+        }
         final String string1 = o1.toString();
         final String string2 = o2.toString();
         // No guarantee that toString() returns a non-null value, despite what Spotbugs thinks.
