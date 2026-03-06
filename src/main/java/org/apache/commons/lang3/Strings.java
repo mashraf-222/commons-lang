@@ -600,10 +600,24 @@ public abstract class Strings {
             return str == suffix;
         }
         final int sufLen = suffix.length();
-        if (sufLen > str.length()) {
+        final int strLen = str.length();
+        if (sufLen > strLen) {
             return false;
         }
-        return CharSequenceUtils.regionMatches(str, ignoreCase, str.length() - sufLen, suffix, 0, sufLen);
+        if (sufLen == 0) {
+            return true;
+        }
+        final int start = strLen - sufLen;
+        if (!ignoreCase) {
+            // Fast path: direct char-by-char comparison for case-sensitive checks
+            for (int i = 0, j = start; i < sufLen; i++, j++) {
+                if (str.charAt(j) != suffix.charAt(i)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return CharSequenceUtils.regionMatches(str, ignoreCase, start, suffix, 0, sufLen);
     }
 
     /**
