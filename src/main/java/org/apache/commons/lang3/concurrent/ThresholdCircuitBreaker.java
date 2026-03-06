@@ -82,6 +82,12 @@ public class ThresholdCircuitBreaker extends AbstractCircuitBreaker<Long> {
      */
     @Override
     public boolean checkState() {
+        // Fast-path: per class documentation, a zero threshold implies a permanent open state.
+        // Short-circuit to avoid the virtual call to isOpen() in that common case.
+        final long t = this.threshold;
+        if (t == 0L) {
+            return false;
+        }
         return !isOpen();
     }
 
