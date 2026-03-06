@@ -2218,7 +2218,7 @@ public class StrBuilder implements CharSequence, Appendable, Serializable, Build
      * @throws IndexOutOfBoundsException if the index is invalid
      */
     public StrBuilder insert(final int index, final float value) {
-        return insert(index, String.valueOf(value));
+        return insert(index, Float.toString(value));
     }
 
     /**
