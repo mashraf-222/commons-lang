@@ -48,15 +48,28 @@ final class GmtTimeZone extends TimeZone {
         if (minutes >= MINUTES_PER_HOUR) {
             throw new IllegalArgumentException(minutes + " minutes out of range");
         }
-        final int milliseconds = (minutes + hours * MINUTES_PER_HOUR) * MILLISECONDS_PER_MINUTE;
-        offset = negate ? -milliseconds : milliseconds;
-        // @formatter:off
-        zoneId = twoDigits(twoDigits(new StringBuilder(9)
-            .append(TimeZones.GMT_ID)
-            .append(negate ? '-' : '+'), hours)
-            .append(':'), minutes)
-            .toString();
-        // @formatter:on
+        // Compute milliseconds using constants to avoid extra arithmetic and allocations
+        offset = negate
+                ? -(hours * MINUTES_PER_HOUR + minutes) * MILLISECONDS_PER_MINUTE
+                :  (hours * MINUTES_PER_HOUR + minutes) * MILLISECONDS_PER_MINUTE;
+
+        // Build zoneId in the form "GMT+hh:mm" (9 chars) using a single char array
+        // to avoid multiple StringBuilder allocations and helper calls.
+        final String gmt = TimeZones.GMT_ID;
+        final int gmtLen = gmt.length();
+        final char[] buf = new char[gmtLen + 1 + 2 + 1 + 2]; // e.g. "GMT" + sign + "hh" + ':' + "mm"
+        int p = 0;
+        gmt.getChars(0, gmtLen, buf, p);
+        p += gmtLen;
+        buf[p++] = negate ? '-' : '+';
+        // hours are in range [0,23], always two digits
+        buf[p++] = (char) ('0' + (hours / 10));
+        buf[p++] = (char) ('0' + (hours % 10));
+        buf[p++] = ':';
+        // minutes are in range [0,59], always two digits
+        buf[p++] = (char) ('0' + (minutes / 10));
+        buf[p++] = (char) ('0' + (minutes % 10));
+        zoneId = new String(buf);
     }
 
     @Override
