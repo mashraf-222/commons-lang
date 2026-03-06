@@ -1597,10 +1597,17 @@ public class StrBuilder implements CharSequence, Appendable, Serializable, Build
      */
     @Override
     public char charAt(final int index) {
-        if (index < 0 || index >= length()) {
+        // Cache fields locally to reduce repeated field accesses in hot paths.
+        final int len = size;
+        final char[] buf = buffer;
+        /*
+         * Single bitwise check replaces two-branch (index < 0 || index >= len).
+         * The expression (index | (len - 1 - index)) < 0 is true when index is out of range.
+         */
+        if ((index | (len - 1 - index)) < 0) {
             throw new StringIndexOutOfBoundsException(index);
         }
-        return buffer[index];
+        return buf[index];
     }
 
     /**
