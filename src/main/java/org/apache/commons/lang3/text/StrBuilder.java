@@ -286,6 +286,8 @@ public class StrBuilder implements CharSequence, Appendable, Serializable, Build
 
     /** The null text. */
     private String nullText;
+    private static final char[] TRUE_CHARS = { 't', 'r', 'u', 'e' };
+    private static final char[] FALSE_CHARS = { 'f', 'a', 'l', 's', 'e' };
 
     /**
      * Constructor that creates an empty builder initial capacity 32 characters.
@@ -2994,7 +2996,14 @@ public class StrBuilder implements CharSequence, Appendable, Serializable, Build
      * @return the builder as a StringBuffer
      */
     public StringBuffer toStringBuffer() {
-        return new StringBuffer(size).append(buffer, 0, size);
+        // Cache size locally to reduce volatile/field reads
+        final int sz = size;
+        // Create with exact capacity to avoid resizes in the StringBuffer
+        final StringBuffer sb = new StringBuffer(sz);
+        if (sz > 0) {
+            sb.append(buffer, 0, sz);
+        }
+        return sb;
     }
 
     /**
