@@ -114,7 +114,21 @@ public class CompositeFormat extends Format {
      * @throws ParseException thrown by parseObject(String) call
      */
     public String reformat(final String input) throws ParseException {
-        return format(parseObject(input));
+        /*
+         * Avoid the extra Format.parseObject(String) indirection and associated
+         * temporary ParsePosition allocation; call parser.parseObject(source,pos)
+         * directly and mirror Format.parseObject(String)'s failure behavior.
+         */
+        final ParsePosition pp = new ParsePosition(0);
+        final Object obj = parser.parseObject(input, pp);
+        if (pp.getIndex() == 0) {
+            throw new ParseException("Unparseable object", pp.getErrorIndex());
+        }
+        // Pre-size the buffer from the input length to reduce reallocation.
+        final int capacity = (input == null) ? 16 : Math.max(16, input.length());
+        final StringBuffer buf = new StringBuffer(capacity);
+        formatter.format(obj, buf, new FieldPosition(0));
+        return buf.toString();
     }
 
 }
