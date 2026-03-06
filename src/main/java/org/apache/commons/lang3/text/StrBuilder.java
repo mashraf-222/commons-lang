@@ -286,6 +286,9 @@ public class StrBuilder implements CharSequence, Appendable, Serializable, Build
 
     /** The null text. */
     private String nullText;
+    private static final String SYSTEM_LINE_SEPARATOR = System.lineSeparator();
+    private static final char[] TRUE_CHARS = new char[] {'t', 'r', 'u', 'e'};
+    private static final char[] FALSE_CHARS = new char[] {'f', 'a', 'l', 's', 'e'};
 
     /**
      * Constructor that creates an empty builder initial capacity 32 characters.
@@ -1092,6 +1095,14 @@ public class StrBuilder implements CharSequence, Appendable, Serializable, Build
      * @since 3.2
      */
     public StrBuilder appendln(final String format, final Object... objs) {
+        // Preserve exact behavior when objs == null (pass-through to append(format, objs))
+        if (objs == null) {
+            return append(format, objs).appendNewLine();
+        }
+        // If no format arguments, avoid formatting machinery by using plain append
+        if (objs.length == 0) {
+            return append(format).appendNewLine();
+        }
         return append(format, objs).appendNewLine();
     }
 
