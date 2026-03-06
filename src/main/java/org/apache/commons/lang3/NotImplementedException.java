@@ -53,7 +53,7 @@ public class NotImplementedException extends UnsupportedOperationException {
      * @since 3.10
      */
     public NotImplementedException() {
-        this.code = null;
+        this(null, (Throwable) null, null);
     }
 
     /**
@@ -63,7 +63,7 @@ public class NotImplementedException extends UnsupportedOperationException {
      * @since 3.2
      */
     public NotImplementedException(final String message) {
-        this(message, (String) null);
+        this(message, (Throwable) null, null);
     }
 
     /**
@@ -74,8 +74,7 @@ public class NotImplementedException extends UnsupportedOperationException {
      * @since 3.2
      */
     public NotImplementedException(final String message, final String code) {
-        super(message);
-        this.code = code;
+        this(message, (Throwable) null, code);
     }
 
     /**
