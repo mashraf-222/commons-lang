@@ -2255,10 +2255,9 @@ public class StrBuilder implements CharSequence, Appendable, Serializable, Build
      * @throws IndexOutOfBoundsException if the index is invalid
      */
     public StrBuilder insert(final int index, final Object obj) {
-        if (obj == null) {
-            return insert(index, nullText);
-        }
-        return insert(index, obj.toString());
+        // Use Objects.toString to reduce branching while preserving semantics:
+        // if obj is null, Objects.toString returns nullText, otherwise obj.toString()
+        return insert(index, Objects.toString(obj, nullText));
     }
 
     /**
