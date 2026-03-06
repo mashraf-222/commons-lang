@@ -2543,8 +2543,18 @@ public class StrBuilder implements CharSequence, Appendable, Serializable, Build
      * @throws IndexOutOfBoundsException if the index is invalid
      */
     public StrBuilder replace(final int startIndex, int endIndex, final String replaceStr) {
-        endIndex = validateRange(startIndex, endIndex);
-        final int insertLen = StringUtils.length(replaceStr);
+        // Inlined validateRange to avoid the hot method call overhead on the hot path.
+        if (startIndex < 0) {
+            throw new StringIndexOutOfBoundsException(startIndex);
+        }
+        int currentSize = this.size;
+        if (endIndex > currentSize) {
+            endIndex = currentSize;
+        }
+        if (startIndex > endIndex) {
+            throw new StringIndexOutOfBoundsException("end < start");
+        }
+        final int insertLen = (replaceStr == null) ? 0 : replaceStr.length();
         replaceImpl(startIndex, endIndex, endIndex - startIndex, replaceStr, insertLen);
         return this;
     }
