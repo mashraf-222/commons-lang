@@ -68,6 +68,17 @@ public interface FailableIntPredicate<E extends Throwable> {
      */
     default FailableIntPredicate<E> and(final FailableIntPredicate<E> other) {
         Objects.requireNonNull(other);
+        // If other is the identity (TRUE), the composition is this predicate.
+        if (other == TRUE) {
+            return this;
+        }
+        // If this is the known constant FALSE, the composition is also the constant FALSE.
+        // Returning the constant avoids creating an extra lambda allocation.
+        if (this == FALSE) {
+            @SuppressWarnings("unchecked")
+            final FailableIntPredicate<E> f = FALSE;
+            return f;
+        }
         return t -> test(t) && other.test(t);
     }
 
