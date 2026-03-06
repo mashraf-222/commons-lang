@@ -2322,6 +2322,11 @@ public class SystemUtils {
     }
 
     /**
+     * The constant {@code true} if this is macOS X Jaguar.
+     * <p>
+     * The value depends on the value of the {@link #OS_NAME} and {@link #OS_VERSION} constants.
+    ... (rest of class unchanged) ...
+    /**
      * Gets the user name.
      * <p>
      * The result is based on the system property {@value SystemProperties#USER_NAME}.
@@ -2336,7 +2341,10 @@ public class SystemUtils {
      */
     @Deprecated
     public static String getUserName(final String defaultValue) {
-        return SystemProperties.getUserName(defaultValue);
+        // Directly read the system property to avoid the indirection overhead while preserving
+        // SecurityException behavior and returning the provided default if the property is not set.
+        final String value = System.getProperty(USER_NAME_KEY);
+        return value == null ? defaultValue : value;
     }
 
     /**
