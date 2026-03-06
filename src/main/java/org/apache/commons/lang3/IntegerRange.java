@@ -31,6 +31,8 @@ import java.util.stream.IntStream;
 public final class IntegerRange extends NumberRange<Integer> {
 
     private static final long serialVersionUID = 1L;
+    private static final java.util.concurrent.atomic.AtomicReferenceArray<IntegerRange> SINGLETONS =
+                new java.util.concurrent.atomic.AtomicReferenceArray<>(256);
 
     /**
      * Creates a closed range with the specified minimum and maximum values (both inclusive).
@@ -68,6 +70,32 @@ public final class IntegerRange extends NumberRange<Integer> {
      * @throws NullPointerException if either element is null.
      */
     public static IntegerRange of(final Integer fromInclusive, final Integer toInclusive) {
+        if (fromInclusive == null || toInclusive == null) {
+            // Preserve NullPointerException behavior
+            throw new NullPointerException();
+        }
+
+        final int a = fromInclusive.intValue();
+        final int b = toInclusive.intValue();
+
+        // Common case: single-value ranges. Cache them for -128..127 (same as Integer.valueOf cache window).
+        if (a == b && a >= -128 && a <= 127) {
+            final int idx = a + 128;
+            IntegerRange cached = SINGLETONS.get(idx);
+            if (cached != null) {
+                return cached;
+            }
+            // Use Integer.valueOf to align with JVM Integer caching semantics
+            final Integer v = Integer.valueOf(a);
+            final IntegerRange created = new IntegerRange(v, v);
+            if (SINGLETONS.compareAndSet(idx, null, created)) {
+                return created;
+            } else {
+                // Another thread installed an instance concurrently; return that one.
+                return SINGLETONS.get(idx);
+            }
+        }
+
         return new IntegerRange(fromInclusive, toInclusive);
     }
 
