@@ -755,9 +755,11 @@ public abstract class Strings {
      *         null or contains no matches.
      */
     public boolean equalsAny(final CharSequence string, final CharSequence... searchStrings) {
-        if (ArrayUtils.isNotEmpty(searchStrings)) {
-            for (final CharSequence next : searchStrings) {
-                if (equals(string, next)) {
+        // Fast-path null/empty check without calling ArrayUtils.isNotEmpty
+        final CharSequence[] arr = searchStrings;
+        if (arr != null && arr.length > 0) {
+            for (int i = 0, len = arr.length; i < len; i++) {
+                if (equals(string, arr[i])) {
                     return true;
                 }
             }
