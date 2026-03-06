@@ -208,26 +208,30 @@ public class CharSetUtils {
             return str;
         }
         final CharSet chars = CharSet.getInstance(set);
-        final StringBuilder buffer = new StringBuilder(str.length());
-        final char[] chrs = str.toCharArray();
-        final int sz = chrs.length;
-        char lastChar = chrs[0];
+        final int sz = str.length();
+        final StringBuilder buffer = new StringBuilder(sz);
+        char lastChar = str.charAt(0);
         char ch;
-        Character inChars = null;
-        Character notInChars = null;
+        // Use primitive chars with flags to avoid boxing/unboxing of Character
+        char inChars = 0;
+        boolean inCharsSet = false;
+        char notInChars = 0;
+        boolean notInCharsSet = false;
         buffer.append(lastChar);
         for (int i = 1; i < sz; i++) {
-            ch = chrs[i];
+            ch = str.charAt(i);
             if (ch == lastChar) {
-                if (inChars != null && ch == inChars) {
+                if (inCharsSet && ch == inChars) {
                     continue;
                 }
-                if (notInChars == null || ch != notInChars) {
+                if (!notInCharsSet || ch != notInChars) {
                     if (chars.contains(ch)) {
                         inChars = ch;
+                        inCharsSet = true;
                         continue;
                     }
                     notInChars = ch;
+                    notInCharsSet = true;
                 }
             }
             buffer.append(ch);
