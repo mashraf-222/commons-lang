@@ -51,7 +51,23 @@ public class ClassPathUtils {
      * @since 3.13.0
      */
     public static String pathToPackage(final String path) {
-        return Objects.requireNonNull(path, "path").replace('/', '.');
+        // Inline null-check to keep the same exception message as Objects.requireNonNull,
+        // then avoid allocations when no '/' is present. Only create a char[] and new String
+        // when replacement is actually required.
+        if (path == null) {
+            throw new NullPointerException("path");
+        }
+        final int firstSlash = path.indexOf('/');
+        if (firstSlash == -1) {
+            return path;
+        }
+        final char[] chars = path.toCharArray();
+        for (int i = firstSlash, len = chars.length; i < len; i++) {
+            if (chars[i] == '/') {
+                chars[i] = '.';
+            }
+        }
+        return new String(chars);
     }
 
     /**
