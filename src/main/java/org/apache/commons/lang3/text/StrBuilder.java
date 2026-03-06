@@ -2104,24 +2104,28 @@ public class StrBuilder implements CharSequence, Appendable, Serializable, Build
      */
     public StrBuilder insert(int index, final boolean value) {
         validateIndex(index);
-        if (value) {
-            ensureCapacity(size + 4);
-            System.arraycopy(buffer, index, buffer, index + 4, size - index);
-            buffer[index++] = 't';
-            buffer[index++] = 'r';
-            buffer[index++] = 'u';
-            buffer[index] = 'e';
-            size += 4;
-        } else {
-            ensureCapacity(size + 5);
-            System.arraycopy(buffer, index, buffer, index + 5, size - index);
-            buffer[index++] = 'f';
-            buffer[index++] = 'a';
-            buffer[index++] = 'l';
-            buffer[index++] = 's';
-            buffer[index] = 'e';
-            size += 5;
+        final int insertLen = value ? 4 : 5;
+        ensureCapacity(size + insertLen);
+
+        // cache buffer locally to avoid repeated field access
+        final char[] buf = buffer;
+        final int moved = size - index;
+        if (moved > 0) {
+            System.arraycopy(buf, index, buf, index + insertLen, moved);
         }
+        if (value) {
+            buf[index]     = 't';
+            buf[index + 1] = 'r';
+            buf[index + 2] = 'u';
+            buf[index + 3] = 'e';
+        } else {
+            buf[index]     = 'f';
+            buf[index + 1] = 'a';
+            buf[index + 2] = 'l';
+            buf[index + 3] = 's';
+            buf[index + 4] = 'e';
+        }
+        size += insertLen;
         return this;
     }
 
