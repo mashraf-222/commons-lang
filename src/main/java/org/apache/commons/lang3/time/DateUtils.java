@@ -1861,4 +1861,14 @@ public class DateUtils {
         // empty
     }
 
+
+    private static boolean contains(final int[] arr, final int value) {
+        for (int v : arr) {
+            if (v == value) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 }
