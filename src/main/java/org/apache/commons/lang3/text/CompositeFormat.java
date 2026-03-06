@@ -103,7 +103,8 @@ public class CompositeFormat extends Format {
      */
     @Override
     public Object parseObject(final String source, final ParsePosition pos) {
-        return parser.parseObject(source, pos);
+        final Format p = this.parser;
+        return p.parseObject(source, pos);
     }
 
     /**
