@@ -189,6 +189,14 @@ public class CompareToBuilder implements Builder<Integer> {
      *  with {@code lhs}
      */
     public static int reflectionCompare(final Object lhs, final Object rhs, final boolean compareTransients) {
+        // Fast-path: identical references are equal (covers both null == null).
+        if (lhs == rhs) {
+            return 0;
+        }
+        // If exactly one is null, throw NullPointerException as specified.
+        if (lhs == null || rhs == null) {
+            throw new NullPointerException();
+        }
         return reflectionCompare(lhs, rhs, compareTransients, null);
     }
 
