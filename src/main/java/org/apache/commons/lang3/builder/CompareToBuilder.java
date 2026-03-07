@@ -234,18 +234,26 @@ public class CompareToBuilder implements Builder<Integer> {
         if (lhs == rhs) {
             return 0;
         }
-        Objects.requireNonNull(lhs, "lhs");
-        Objects.requireNonNull(rhs, "rhs");
+        if (lhs == null) {
+            throw new NullPointerException("lhs");
+        }
+        if (rhs == null) {
+            throw new NullPointerException("rhs");
+        }
 
         Class<?> lhsClazz = lhs.getClass();
-        if (!lhsClazz.isInstance(rhs)) {
+        final Class<?> rhsClazz = rhs.getClass();
+        if (!lhsClazz.isAssignableFrom(rhsClazz)) {
             throw new ClassCastException();
         }
         final CompareToBuilder compareToBuilder = new CompareToBuilder();
         reflectionAppend(lhs, rhs, lhsClazz, compareToBuilder, compareTransients, excludeFields);
-        while (lhsClazz.getSuperclass() != null && lhsClazz != reflectUpToClass) {
-            lhsClazz = lhsClazz.getSuperclass();
+
+        Class<?> superclass = lhsClazz.getSuperclass();
+        while (superclass != null && lhsClazz != reflectUpToClass) {
+            lhsClazz = superclass;
             reflectionAppend(lhs, rhs, lhsClazz, compareToBuilder, compareTransients, excludeFields);
+            superclass = lhsClazz.getSuperclass();
         }
         return compareToBuilder.toComparison();
     }
